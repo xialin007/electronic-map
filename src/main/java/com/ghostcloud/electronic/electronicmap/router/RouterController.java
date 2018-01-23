@@ -15,8 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ghostcloud.electronic.electronicmap.handler.GPSMileage;
+import com.ghostcloud.electronic.electronicmap.handler.GPSMileageHandler;
 import com.ghostcloud.electronic.electronicmap.handler.IHandler;
+import com.ghostcloud.electronic.electronicmap.handler.UserHandler;
 
 @RestController
 public class RouterController {
@@ -26,28 +27,37 @@ public class RouterController {
 	private Map<String, IHandler> handlers = new HashMap<String, IHandler>();
 
 	@Autowired
-	private GPSMileage gpsMileage;
+	private GPSMileageHandler gpsMileageHandler;
+	
+	@Autowired
+	private UserHandler userHandler;
 
 	@PostConstruct
 	public void init() {
-		handlers.put("huoyunren.gpsMileage.getTruckMileage", gpsMileage);
+		handlers.put("huoyunren.gpsMileage.getTruckMileage", gpsMileageHandler);
+		handlers.put("user", userHandler);
 	}
 
 	@RequestMapping("/router")
-	public String router(@RequestParam String method, @RequestParam String startDate, @RequestParam String endDate,
-			@RequestParam String macno, @RequestParam String gpsno, @RequestParam int type)
+	public Object router(@RequestParam String method, 
+			@RequestParam(required = false) String startDate, 
+			@RequestParam(required = false) String endDate,
+			@RequestParam(required = false) String macno, 
+			@RequestParam(required = false) String gpsno, 
+			@RequestParam(required = false) Integer type)
 			throws HandlerNotFoundException {
 		IHandler hanlder = handlers.get(method);
 		if (hanlder == null) {
 			throw new HandlerNotFoundException(method + " not found.");
 		}
 		Map<String, String> paramMaps = new HashMap<String, String>();
-		paramMaps.put("startDate", startDate);
-		paramMaps.put("endDate", endDate);
-		paramMaps.put("macno", macno);
-		paramMaps.put("type", String.valueOf(type));
+		if (startDate != null ) paramMaps.put("startDate", startDate);
+		if (endDate != null ) paramMaps.put("endDate", endDate);
+		if (macno != null ) paramMaps.put("macno", macno);
+		if (type != null ) paramMaps.put("type", String.valueOf(type));
 		return hanlder.handle(paramMaps);
 	}
+	
 
 	@ExceptionHandler(value = HandlerNotFoundException.class)
 	@ResponseBody

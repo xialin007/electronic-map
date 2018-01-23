@@ -4,6 +4,6 @@ import java.util.Map;
 
 public interface IHandler {
 
-	public String handle(Map<String, String> paramMaps);
+	public Object handle(Map<String, String> paramMaps);
 	
 }
